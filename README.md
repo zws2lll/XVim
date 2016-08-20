@@ -5,31 +5,45 @@
 
 #### Announcement
 
-  - XVim repository has moved to XVimProject organization. There are not so many thing you have to do with this but if you cloned the repo and working local it is recommendded to change the remote URL as sited [here](https://help.github.com/articles/transferring-a-repository/) (This is not must. Github nicely forward old URL to new one.)
+  - Xcode 6,7 Users, use the commit before 809527b
   - XVim started to use BountySource [![Bountysource](https://www.bountysource.com/badge/team?team_id=918&style=bounties_posted)](https://www.bountysource.com/teams/xvim/bounties?utm_source=XVim&utm_medium=shield&utm_campaign=bounties_posted) [![Bountysource](https://www.bountysource.com/badge/team?team_id=918&style=raised)](https://www.bountysource.com/teams/xvim?utm_source=XVim&utm_medium=shield&utm_campaign=raised)
   - [Google Group for XVim developers](https://groups.google.com/d/forum/xvim-developers) has been created.
   
 
 ## Support Xcode Versions
-  - Xcode5
-  - Xcode6 GM
-  - Xcode7 GM
+  - Xcode6  : Use before 809527b
+  - Xcode7  : Use before 809527b
+  - Xcode8  : Use the latest master
 
 ## INSTALL
   Download source code or clone the repo. Then,
+  
+  1. Confirm `xcode-select` points to your Xcode
+  ```bash
+  $ xcode-select -p
+  /Applications/Xcode.app/Contents/Developer
+  ```
+  
+  If this doesn't show your Xcode application path, use `xcode-select -s` to set.
+  
+  2. make
   ```bash
   $ make
   ```
-  Create `.xvimrc` as you need and restart your Xcode. 
 
-### Manual build and install
- - Download source code(See also "Branches and Releases" section) and open XVim.xcodeproj with Xcode.
- - Select an appropriate Scheme for your Xcode version
-    - "XVim for Xcode5 and 6" must be built with Xcode5 or 6
- - Select "Edit Scheme" and set "Build Configuration" as "Release"
- - Build it. It automatically installs the plugin into the correct directory.
- - Restart Xcode. (Make sure that the Xcode process is terminated entirely)
- - Create a `.xvimrc` file in the root of your home directory (optional)
+  With Xcode 8 and above, you'll be asked if you want to remove code singature from Xcode.
+  It is required to make the XCode load XVim.
+  So if you are OK just type 'y' to proceed and remove code signature from your Xcode.
+  
+  If you see something like 
+  
+  ```
+  XVim hasn't confirmed the compatibility with your Xcode, Version X.X
+  Do you want to compile XVim with support Xcode Version X.X at your own risk? 
+  ```
+  Press y if you want to use XVim with your Xcode version (even it is not confirmed it works)
+  
+  3. Create `.xvimrc` as you need and restart your Xcode. 
 
 ## Branches and Releases
  XVim has several branches and releases. Usually you only need to download one of 'releases' and use it.
@@ -75,29 +89,8 @@ Delete the following directory:
   
   https://www.bountysource.com/teams/xvim
 
-## Bug issue handling 
-
-  Reported bugs are handled following order.
-
-  1. Confirm if the bug reproduce and the issue labeled as 'Bug'
-  2. Fix the bug in 'develop' branch
-  3. Confirm the fix by the reporter
-  4. The issue is labeled 'Done'
-  5. Confirm that the fix does not make another side effect.
-  6. Merged into 'master'
-  7. The issue is closed.
-
-  This order is only applied to 'Bug' issues.
-
-## Contributions
-  Any suggestions, bug reports or feature requests are welcome.
-  
-  If you want to add a feature or fix bugs by yourself the following videos are good help for you.
- - [How to get debug log](http://www.youtube.com/watch?v=50Bhu8setlc)
- - [How to debug XVim](http://www.youtube.com/watch?v=AbC6f86VW9A)
- - [How to write a test case](http://www.youtube.com/watch?v=kn-kkRTtRcE)
-
-  Any pull requests are very much appreciated. Before you make a pull request see [Make a Pull Request](Documents/Developers/PullRequest.md)
+## Contributing Guidelines
+  See separate [CONTRIBUTING.md](.github/CONTRIBUTING.md)
 
 ## Donations
   If you think the plugin is useful, please donate.

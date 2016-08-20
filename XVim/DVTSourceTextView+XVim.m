@@ -148,13 +148,11 @@
     return;
 }
 
-NSRect s_lastCaret;
+// NSRect s_lastCaret;
 - (void)xvim_drawRect:(NSRect)dirtyRect{ 
-    TRACE_LOG(@"drawRect");
+    // TRACE_LOG(@"drawRect dirtyRect(%f,%f,%f,%f)", dirtyRect.origin.x, dirtyRect.origin.y, dirtyRect.size.width, dirtyRect.size.height);
+
     @try{
-        NSGraphicsContext* context = [NSGraphicsContext currentContext];
-        [context saveGraphicsState];
-        
         if( XVim.instance.options.hlsearch ){
             XVimMotion* lastSearch = [XVim.instance.searcher motionForRepeatSearch];
             if( nil != lastSearch.regex && !XVim.instance.foundRangesHidden ){
@@ -176,22 +174,17 @@ NSRect s_lastCaret;
             NSRectFillUsingOperation( glyphRect, NSCompositeSourceOver);
         }
         
-        // Caret Drawing
-        XVimWindow* window = [self xvim_window];
-        if( [self performSelector:@selector(_isLayerBacked)] && ![[[window currentEvaluator] class] isSubclassOfClass:[XVimInsertEvaluator class]]){
-            // Erase Cursor 
-            [[NSBezierPath bezierPathWithRect:[self visibleRect]] setClip];
-            [self xvim_drawRect:s_lastCaret];
-            if( ![[[XVim instance] options] blinkcursor] ){
-                // Only when not blinkcursor, draw caret
-                NSUInteger glyphIndex = [self insertionPoint];
-                NSRect glyphRect = [self xvim_boundingRectForGlyphIndex:glyphIndex];
-                //glyphRect.origin.x -= 1.0f;
-                [self _drawInsertionPointInRect:glyphRect color:[self insertionPointColor]];
-            }
+        /*
+        if( ![XVim instance].options.blinkcursor ){
+            // We need to draw caret on drawRect when it is not blinkcursor.
+            // This is required when the view is IDEPlaygroundSourceTextView because
+            // it doesn't use drawInsertionPointInRect to clear caret but user drawRect to clear the caret.
+            // The reason "turnedOn" is set to NO is because
+            // the drawing caret on this timing corresponds to clear caret.
+            // This will keep consistence when it goes into Insert mode.
+            [self drawInsertionPointInRect:s_lastCaret color:[self insertionPointColor] turnedOn:NO];
         }
-        
-        [context restoreGraphicsState];
+         */
     }@catch (NSException* exception) {
         ERROR_LOG(@"Exception %@: %@", [exception name], [exception reason]);
         [Logger logStackTrace:exception];
@@ -201,19 +194,27 @@ NSRect s_lastCaret;
 
 // Drawing Caret
 - (void)xvim__drawInsertionPointInRect:(NSRect)aRect color:(NSColor*)aColor{
-    TRACE_LOG(@"%f %f %f %f", aRect.origin.x, aRect.origin.y, aRect.size.width, aRect.size.height);
+    // TRACE_LOG(@"%f %f %f %f", aRect.origin.x, aRect.origin.y, aRect.size.width, aRect.size.height);
     @try{
         XVimWindow* window = [self xvim_window];
         if( [[[window currentEvaluator] class] isSubclassOfClass:[XVimInsertEvaluator class]]){
             // Use original behavior when insert mode.
             return [self xvim__drawInsertionPointInRect:aRect color:aColor];
         }
+
+        // Erase old cursor.
+        // [self xvim_drawRect:s_lastCaret];
         
         NSUInteger glyphIndex = [self insertionPoint];
         NSRect glyphRect = [self xvim_boundingRectForGlyphIndex:glyphIndex];
-        s_lastCaret = glyphRect;
+        // s_lastCaret = glyphRect;
+
+        NSGraphicsContext *context = [NSGraphicsContext currentContext];
+        [context saveGraphicsState];
         [[NSBezierPath bezierPathWithRect:[self visibleRect]] setClip];
         [window drawInsertionPointInRect:glyphRect color:aColor];
+        [context restoreGraphicsState];
+        
     }@catch (NSException* exception) {
         ERROR_LOG(@"Exception %@: %@", [exception name], [exception reason]);
         [Logger logStackTrace:exception];
@@ -225,24 +226,32 @@ NSRect s_lastCaret;
         // Use original behavior when insert mode.
         return [self xvim_drawInsertionPointInRect:rect color:color turnedOn:flag];
     }
-    
+
+    /*
+    BOOL shouldClear = NO;
+    BOOL shouldDraw = NO;
+
+
     if( ![self performSelector:@selector(_isLayerBacked)] ){
-        if( [[[XVim instance] options] blinkcursor] ){
-            [self drawRect:s_lastCaret];
-            if( flag ) {
-                [self _drawInsertionPointInRect:rect color:color];
-            }
-        }else{
-            [self drawRect:s_lastCaret];
-            [self _drawInsertionPointInRect:rect color:color];
-        }
+        shouldClear = YES;
+        shouldDraw = ![[[XVim instance] options] blinkcursor] || flag;
     }
-    else{
-        if( [[[XVim instance] options] blinkcursor] ){
-            [self drawRect:s_lastCaret];
-            [self _drawInsertionPointInRect:rect color:color];
-        }
+    else {
+        shouldClear = YES;
+        shouldDraw = YES;
     }
+     */
+
+    /*
+    if (shouldClear) {
+        [self xvim_drawRect:s_lastCaret];
+    }
+
+    if (shouldDraw) {
+        [self _drawInsertionPointInRect:rect color:color];
+    }
+    */
+
     return;
 }
 - (void)xvim_didChangeText{
@@ -263,11 +272,13 @@ static NSString* XVIM_INSTALLED_OBSERVERS_DVTSOURCETEXTVIEW = @"XVIM_INSTALLED_O
             [XVim.instance.options addObserver:self forKeyPath:@"hlsearch" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
             [XVim.instance.options addObserver:self forKeyPath:@"ignorecase" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
             [XVim.instance.searcher addObserver:self forKeyPath:@"lastSearchString" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
+            [XVim.instance.options addObserver:self forKeyPath:@"highlight" options:NSKeyValueObservingOptionInitial|NSKeyValueObservingOptionNew context:nil];
             [ self xvim_performOnDealloc:^{
                 @try{
                     [XVim.instance.options removeObserver:self forKeyPath:@"hlsearch"];
                     [XVim.instance.options removeObserver:self forKeyPath:@"ignorecase"];
                     [XVim.instance.searcher removeObserver:self forKeyPath:@"lastSearchString"];
+                    [XVim.instance.searcher removeObserver:self forKeyPath:@"highlight"];
                 }
                 @catch (NSException* exception){
                     ERROR_LOG(@"Exception %@: %@", [exception name], [exception reason]);
@@ -289,7 +300,7 @@ static NSString* XVIM_INSTALLED_OBSERVERS_DVTSOURCETEXTVIEW = @"XVIM_INSTALLED_O
 }
 
 - (void)xvim_observeValueForKeyPath:(NSString *)keyPath  ofObject:(id)object  change:(NSDictionary *)change  context:(void *)context {
-	if([keyPath isEqualToString:@"ignorecase"] || [keyPath isEqualToString:@"hlsearch"] || [keyPath isEqualToString:@"lastSearchString"]){
+	if([keyPath isEqualToString:@"ignorecase"] || [keyPath isEqualToString:@"hlsearch"] || [keyPath isEqualToString:@"lastSearchString"] || [keyPath isEqualToString:@"highlight"]){
         [self setNeedsUpdateFoundRanges:YES];
         [self setNeedsDisplayInRect:[self visibleRect] avoidAdditionalLayout:YES];
     }

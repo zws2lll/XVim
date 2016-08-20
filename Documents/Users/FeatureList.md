@@ -43,6 +43,11 @@ you can specify following line in .xvimrc.
 
      inoremap <C-e> <C-o>$
 
+## Navigation
+C-], C-t
+
+C-] is mapped to "Jump To Definition".
+C-t is mapped to "Go Back" (as it is the closest thing Xcode has to vims behavior).
 
 ## Yank, put and change
 
@@ -66,6 +71,22 @@ Visual mode: u, U, ~, gu, gU
 
 u, C-r
 
+## Folds
+
+zc, zC, zm, zM, zo, zO, zr, zR
+
+zc - fold
+(Note: zC is mapped to zc as Xcode does not have similar vim behavior.)
+
+zM - fold all
+(Note: zm is mapped to zM as Xcode does not have similar vim behavior.)
+
+zo - unfold
+(Note: zO is mapped to zo as Xcode does not have similar vim behavior.)
+
+zR - unfold all
+(Note: zr is mapped to zR as Xcode does not have similar vim behavior.)
+
 ## Visual
 v, V, Ctrl-v
 
@@ -79,6 +100,7 @@ Inserting with visual block is not supported currently (Ctrl-v + Shift-I does no
 
  Input     | Operation
 -----------|---------------------------
+  C-w c    | Close current editor.
   C-w n    | Add new assistant (Use layout of the last)
   C-w o    | Delete all assistant editors.
   C-w q    | Delete one assistant editor
@@ -87,6 +109,21 @@ Inserting with visual block is not supported currently (Ctrl-v + Shift-I does no
 C-w h,j,k,l| Move focus between editors
   C-w w    | Jump to the next editor
   C-w W    | Jump to the previous editor
+
+  Alias    | Operation
+-----------|---------------------------
+  C-w C-c  | Same as "C-w c"
+  C-w C-n  | Same as "C-w n"
+  C-w C-o  | Same as "C-w o"
+  C-w C-q  | Same as "C-w q"
+  C-w C-s  | Same as "C-w s"
+  C-w C-v  | Same as "C-w v"
+  C-w C-h  | Same as "C-w h"
+  C-w C-j  | Same as "C-w j"
+  C-w C-k  | Same as "C-w k"
+  C-w C-l  | Same as "C-w l"
+  C-w C-w  | Same as "C-w w"
+  C-w C-W  | Same as "C-w W"
 
 The behaviour of window manipulations is slightly different from Vim's one. This is because that Xcode doesn't have a concept of multiple equivalent text views in a window.
 Instead, Xcode has a concept of a main editor and assistant editors. A main editor always stays in a window and you can add/remove multiple assistant editors.
@@ -141,6 +178,42 @@ The dot command ('.') is supported.
   :sp[lit] | Add new assistant editor. Assistant editors are laid out horizontally.
   :vsp[lit]| Add new assistant editor. Assistant editors are laid out vertically.
 
+## Ex ranges
+
+ Range     | Note
+-----------|-----
+  :X,Y     | Multiple line range
+  :X-N,Y   | Multiple line range
+  :X+N,Y   | Multiple line range
+  :X       | Single line range
+  :X-N     | Single line range
+  :X+N     | Single line range
+  :-N      | Single line range, shortened version of X-N where X is '.'
+  :+N      | Single line range, shortened version of X+N where X is '.'
+
+In the above table, N can only be a digit, but X and Y can be a digit, a mark reference (EXAMPLE 'a), '.', or '$'.
+
+## Ex range commands
+
+ Command   | Note
+-----------|-----
+  y[ank]   | Yank lines in range
+  d[elete] | Delete lines in range
+  copy     | Copy lines in range to new location
+  t        | Synonym for copy
+  m[ove]   | Move lines in range to new location
+  sort     | Sort lines in range
+  s[ubstitute]      | Documented in "Search and Replace" above.  '&' and '~' can be used as synonyms for 's'.
+  !        | Execute command with external process
+
+Examples:
+
+    :1,.y
+    :4,5m$
+    :'a,'bd
+    :5t10
+
+
 ## Filename modifier for bang
 
  Modifier  |
@@ -182,6 +255,7 @@ The dot command ('.') is supported.
   [no]smartcase |
   [no]number |
   [no]hlsearch |
+  [no]expandtab | Only affects shift operations (e.g. `>>`, `v>`). When set to off, set tab width and insert mode behavior of tab key in XCode preferences (Text Editing -> Indentation). Defaults to on.
   guioptions | See below
   timeoutlen | The time in milliseconds that is waited for mapped key sequence to complete (default 1000)
   laststatus | 0 or 1 : status line is hidden, 2 : status line is displayed  (default 2)
@@ -190,6 +264,7 @@ The dot command ('.') is supported.
   [no]relativenumber |
   [no]alwaysuseinputsource | With this option all the input is first sent to input source of the system. If you are using France, Portugese or Swedish keyboard consider turning this on. When enabling this, also consider running `defaults write com.apple.dt.Xcode ApplePressAndHoldEnabled -bool false` to disable the press and hold character menu in recent OS X releases.  (See issue https://github.com/JugglerShu/XVim/issues/598).
   [no]blinkcursor |
+  [no]startofline | Tells XVim to move the cursor to the first non-blank of the line when using jump commands (`gg, G` etc). Defaults to on.
 
 
 ## guioptions

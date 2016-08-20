@@ -7,6 +7,7 @@
 //
 
 #import "XVimTester.h"
+#import "DVTFoundation.h"
 
 @implementation XVimTester (Operator)
 - (NSArray*)operator_testcases{
@@ -99,6 +100,18 @@
     static NSString* cc_result4 = @"aaa\n"
                                   @"bbb\n"
                                   @"ccc";
+    static NSString* cc_text_space   = @"int abc() {\n" // This result may differ from editor setting. This is for 4 spaces for indent.
+                                       @"    int\n"
+                                       @"}\n";
+    static NSString* cc_result_space = @"int abc() {\n"
+                                       @"    char\n"
+                                       @"}\n";
+    static NSString* cc_text_tab     = @"int abc() {\n"
+                                       @"	int\n" // tab size not showing correctly, but it works when in use and test
+                                       @"}\n";
+    static NSString* cc_result_tab   = @"int abc() {\n"
+                                       @"	char\n" // tab size not showing correctly, but it works when in use and test
+                                       @"}\n";
     
     static NSString* d_result1 = @"a\n"
                                  @"bbb\n"
@@ -249,9 +262,12 @@
     static NSString* oO_text = @"int abc(){\n"  // 0 4
                                @"}\n";          // 11
     
-    static NSString* oO_result = @"int abc(){\n" // This result may differ from editor setting. This is for 4 spaces for indent.
-                                 @"    \n"      // 11
-                                 @"}\n";
+    static NSString* oO_result_spaces = @"int abc(){\n" // This result may differ from editor setting. This is for 4 spaces for indent.
+                                        @"    \n"       // 11
+                                        @"}\n";
+    static NSString* oO_result_tabs = @"int abc(){\n"
+                                      @"	\n"
+                                      @"}\n";
     
     static NSString* oO_result2 = @"int abc(){\n" 
                                   @"}\n"
@@ -335,13 +351,34 @@
                                       @"    ddd\n"
                                       @"eee\n"
                                       @"fff";
-    
+
     static NSString* rshift_result2 = @"    aaa\n"
                                       @"    bbb\n"
                                       @"ccc\n"
                                       @"    ddd\n"
                                       @"    eee\n"
                                       @"fff";
+
+    static NSString* rshift_result0_1 = @"aaa\n"
+                                        @"\tbbb\n"
+                                        @"ccc\n"
+                                        @"ddd\n"
+                                        @"eee\n"
+                                        @"fff";
+
+    static NSString* rshift_result1_1 = @"aaa\n"
+                                        @"\tbbb\n"
+                                        @"\tccc\n"
+                                        @"\tddd\n"
+                                        @"eee\n"
+                                        @"fff";
+
+    static NSString* rshift_result2_1 = @"\taaa\n"
+                                        @"\tbbb\n"
+                                        @"ccc\n"
+                                        @"\tddd\n"
+                                        @"\teee\n"
+                                        @"fff";
     
     static NSString* lshift_result0 = @"        aaa\n"   // 0
                                       @"    bbb\n"       // 12 
@@ -414,6 +451,10 @@
             XVimMakeTestCase(text0, 5,  0, @"ccaaa<ESC>.."   , cc_result3,  2, 0), // Repeat
             XVimMakeTestCase(text1, 1,  0, @"ccaaa<ESC>jj`^" , cc_result4,  2, 0), // ^ Mark
             XVimMakeTestCase(text1, 1,  0, @"ccaaa<ESC>jj`." , cc_result4,  2, 0), // . Mark
+            // the following test case assumes that Xcode indent in the preference is 4 spaces
+            ( [[DVTTextPreferences preferences] useTabsToIndent] ) // check for tab/space indentation
+                ? XVimMakeTestCase(cc_text_tab,   13, 0, @"ccchar<ESC>", cc_result_tab,   16, 0)
+                : XVimMakeTestCase(cc_text_space, 16, 0, @"ccchar<ESC>", cc_result_space, 19, 0), // Issue 769
             
             // c_ does the same as cc
             XVimMakeTestCase(text0, 5,  0, @"c_aaa<ESC>"     , cc_result1,  2, 0),
@@ -421,6 +462,10 @@
             XVimMakeTestCase(text0, 5,  0, @"c_aaa<ESC>.."   , cc_result3,  2, 0), // Repeat
             XVimMakeTestCase(text1, 1,  0, @"c_aaa<ESC>jj`^" , cc_result4,  2, 0), // ^ Mark
             XVimMakeTestCase(text1, 1,  0, @"c_aaa<ESC>jj`." , cc_result4,  2, 0), // . Mark
+            // the following test case assumes that Xcode indent in the preference is 4 spaces
+            ( [[DVTTextPreferences preferences] useTabsToIndent] ) // check for tab/space indentation
+                ? XVimMakeTestCase(cc_text_tab,   13, 0, @"c_char<ESC>", cc_result_tab,   16, 0)
+                : XVimMakeTestCase(cc_text_space, 16, 0, @"c_char<ESC>", cc_result_space, 19, 0), // Issue 769
             
             // Combination c and f,t
             XVimMakeTestCase(text0, 4,  0, @"cfcbbb c<ESC>hhhh" , text0, 4, 0),
@@ -532,6 +577,10 @@
             XVimMakeTestCase(text0, 5,  0, @"Saaa<ESC>.."   , cc_result3,  2, 0), // Repeat
             XVimMakeTestCase(text1, 1,  0, @"Saaa<ESC>jj`^" , cc_result4,  2, 0), // ^ Mark
             XVimMakeTestCase(text1, 1,  0, @"Saaa<ESC>jj`." , cc_result4,  2, 0), // . Mark
+            // the following test case assumes that Xcode indent in the preference is 4 spaces
+            ( [[DVTTextPreferences preferences] useTabsToIndent] ) // check for tab/space indentation
+                ? XVimMakeTestCase(cc_text_tab,   13, 0, @"Schar<ESC>", cc_result_tab,   16, 0)
+                : XVimMakeTestCase(cc_text_space, 16, 0, @"Schar<ESC>", cc_result_space, 19, 0), // Issue 769
             
             // x
             XVimMakeTestCase(text0, 1, 0, @"x"      , x_result1, 1, 0),
@@ -568,6 +617,13 @@
             XVimMakeTestCase(text4, 1, 0, @"2>>jjj.", rshift_result2,24, 0),
             XVimMakeTestCase(text4, 5, 0, @">>jj`." , rshift_result0, 4, 0),
             XVimMakeTestCase(text4, 5, 0, @">>jj'." , rshift_result0, 8, 0),
+
+            // should create tabs with noexpandtab
+            XVimMakeTestCase(text4, 5, 0, @":set noexpandtab<CR>>>:set et<CR>"     , rshift_result0_1, 5, 0),
+            XVimMakeTestCase(text4, 5, 0, @":set noexpandtab<CR>3>>:set et<CR>"    , rshift_result1_1, 5, 0),
+            XVimMakeTestCase(text4, 1, 0, @":set noexpandtab<CR>2>>jjj.:set et<CR>", rshift_result2_1,15, 0),
+            XVimMakeTestCase(text4, 5, 0, @":set noexpandtab<CR>>>jj`.:set et<CR>" , rshift_result0_1, 4, 0),
+            XVimMakeTestCase(text4, 5, 0, @":set noexpandtab<CR>>>jj'.:set et<CR>" , rshift_result0_1, 5, 0),
             
             // < (Shift)
             // the following test case assumes that Xcode indent in the preference is 4 spaces
@@ -593,8 +649,14 @@
             XVimMakeTestCase(text0, 0,  0,    @"g~w", g_tilde_w_result,   0, 0),
             
             // o, O
-            XVimMakeTestCase(oO_text,  4, 0, @"o<ESC>", oO_result, 14, 0),
-            XVimMakeTestCase(oO_text, 11, 0, @"O<ESC>", oO_result, 14, 0),
+            ( [[DVTTextPreferences preferences] useTabsToIndent] ) // check for tab/space indentation
+                ? XVimMakeTestCase(oO_text,  4, 0, @"o<ESC>", oO_result_tabs, 11, 0)
+                : XVimMakeTestCase(oO_text,  4, 0, @"o<ESC>", oO_result_spaces, 14, 0),
+
+            ( [[DVTTextPreferences preferences] useTabsToIndent] ) // check for tab/space indentation
+                ? XVimMakeTestCase(oO_text, 11, 0, @"O<ESC>", oO_result_tabs, 11, 0)
+                : XVimMakeTestCase(oO_text, 11, 0, @"O<ESC>", oO_result_spaces, 14, 0),
+
             XVimMakeTestCase(oO_text, 13, 0, @"O<ESC>", oO_result2, 13, 0), // Issue #675
             
             // Insert and Ctrl-o

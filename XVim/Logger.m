@@ -9,6 +9,8 @@
 #import "Logger.h"
 #import <objc/runtime.h>
 #import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
+#import "DVTKit.h"
 
 #define LOGGER_DEFAULT_NAME @"LoggerDefaultName"
 
@@ -61,7 +63,10 @@ static Logger* s_defaultLogger = nil;
     }
     unsigned int num;
     Method* m = class_copyMethodList(c, &num);    
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
     IMP no_imp = class_getMethodImplementation([Logger class], @selector(there_is_not_such_method)); // Find imple for not implemented
+#pragma clang diagnostic pop
     for( unsigned int i = 0 ; i < num ; i++ ){
         SEL selector = method_getName(m[i]);
         NSString* new_selector = [[NSString alloc] initWithFormat:@"LOGGER_HIDDEN_%@", NSStringFromSelector(selector)];
@@ -118,7 +123,7 @@ static Logger* s_defaultLogger = nil;
     static NSDateFormatter* s_formatter = nil;
     if( s_formatter == nil ){
         s_formatter = [[NSDateFormatter alloc] init];
-        [s_formatter setDateFormat:@"HH:mm:ss"];
+        [s_formatter setDateFormat:@"HH:mm:ss:SSS"];
     }
     NSString *sNow = [s_formatter stringFromDate:[NSDate date]];
     NSString* fmt = [NSString stringWithFormat:@"[%@][%@]%@", logLevelNames[@(l)], sNow, format];
@@ -235,14 +240,17 @@ static Logger* s_defaultLogger = nil;
     [Logger traceViewInfoImpl:obj subView:sub prefix:@""];
 }
 
+
 + (void)traceView:(NSView*)view depth:(NSUInteger)depth{
     NSMutableString* str = [[NSMutableString alloc] init];
     for( NSUInteger i = 0 ; i < depth; i++ ){
         [str appendString:@"   "];
     }
     [str appendString:@"%p:%@ (Tag:%d)"];
-    NSLog(str, view, NSStringFromClass([view class]), 
-          [view tag]); 
+    if( [view isKindOfClass:NSClassFromString(@"DVTControllerContentView")]){
+        [str appendFormat:@" <--- %@", [(DVTControllerContentView*)view viewController].description];
+    }
+    NSLog(str, view, NSStringFromClass([view class]), [view tag]); 
     for(NSView* v in [view subviews] ){
         [self traceView:v depth:depth+1];
     }

@@ -54,6 +54,11 @@
                                       @"        ddd e-e fff\n"
                                       @"ggg hhh i_i\n" 
                                       @"    jjj kkk"; 
+
+    static NSString* rshift_result0_1 = @"\t\ta;a bbb ccc\n"
+                                        @"\t\tddd e-e fff\n"
+                                        @"ggg hhh i_i\n"
+                                        @"    jjj kkk";
     
     static NSString* rshift_result1 = @"    a;a bbb ccc\n"
                                       @"    ddd e-e fff\n"
@@ -76,6 +81,16 @@
                                   @"DDD E-E FFF\n"  // 12 16 20
                                   @"ggg hhh i_i\n"  // 24 28 32
                                   @"    jjj kkk";   // 36 40 44
+    
+    static NSString* VGU_result=  @"a;a bbb ccc\n"  // 0  4  8
+                                  @"DDD E-E FFF\n"  // 12 16 20
+                                  @"GGG HHH I_I\n"  // 24 28 32
+                                  @"    JJJ KKK";   // 36 40 44
+
+    static NSString* vGU_result=  @"a;a bbb ccc\n"  // 0  4  8
+                                  @"DDD E-E FFF\n"  // 12 16 20
+                                  @"GGG HHH I_I\n"  // 24 28 32
+                                  @"    Jjj kkk";   // 36 40 44
     
     static NSString* c_vgU_result=  @"A;A bbb ccc\n"  // 0  4  8
                                     @"DDD e-e fff\n"  // 12 16 20
@@ -123,13 +138,18 @@
             XVimMakeTestCase(text2, 0,  0, @"vj>."  , rshift_result0 , 8, 0), // #311
             XVimMakeTestCase(text2, 0,  0, @"vj>..u", rshift_result0 , 8, 0),
             XVimMakeTestCase(text2, 0,  0, @"vj>jj.", rshift_result1 ,36, 0),
+            XVimMakeTestCase(text2, 0,  0, @":set noexpandtab<CR>vj>.:set et<CR>", rshift_result0_1, 2, 0),
             
             XVimMakeTestCase(text2, 0,  0, @"<C-v>lljjd", C_v_d_result, 0, 0),
             XVimMakeTestCase(text1, 0,  0, @"vllcxxx<ESC>", vllccxxx_result, 2, 0),
             XVimMakeTestCase(text2, 0,  0, @"vlljgU", vgU_result , 0, 0), // vgU
+            XVimMakeTestCase(text2, 14,  0, @"vggU",  vgU_result , 0, 0), // vggU (same result with gU)
+            XVimMakeTestCase(text2, 12,  0, @"vGU",  vGU_result, 12, 0),  // vGU
             XVimMakeTestCase(text2, 0,  0, @"vlljU",  vgU_result , 0, 0), // vU (same result with gU)
+            XVimMakeTestCase(text2, 12,  0, @"VggU", VgU_result, 0, 0),  // VggU
             XVimMakeTestCase(text2, 0,  0, @"VlljgU", VgU_result, 0, 0),  // VgU
             XVimMakeTestCase(text2, 0,  0, @"VlljU",  VgU_result, 0, 0),  // VU
+            XVimMakeTestCase(text2, 12,  0, @"VGU",  VGU_result, 12, 0),  // VGU
             XVimMakeTestCase(text2, 0,  0, @"<C-v>lljgU", c_vgU_result, 0, 0), // <C-v>gU
             XVimMakeTestCase(text2, 0,  0, @"<C-v>lljU", c_vgU_result, 0, 0), // <C-v>U
             
@@ -171,10 +191,15 @@
             XVimMakeTestCase(text2, 0,  0, @"vlljj<C-v>d", C_v_d_result, 0, 0), // change in visual
             
             // Text object in Visual mode
+            XVimMakeTestCase(text2, 4,  0, @"viw", text2, 4, 3),
             XVimMakeTestCase(text2, 5,  0, @"viw", text2, 4, 3),
+            XVimMakeTestCase(text2, 6,  0, @"viw", text2, 4, 3),
+            XVimMakeTestCase(text2, 4,  0, @"vaw", text2, 4, 4),
             XVimMakeTestCase(text2, 5,  0, @"vaw", text2, 4, 4),
+            XVimMakeTestCase(text2, 6,  0, @"vaw", text2, 4, 4),
             // Visual Line goes Visual Character with text object 
             XVimMakeTestCase(text2, 5,  0, @"Vjiw", text2, 5, 14), // Must extend one text object
+            XVimMakeTestCase(text2, 5,  0, @"Vjaw", text2, 5, 15), // Must extend one text object
             
             // J in visual
             XVimMakeTestCase(text4, 1, 0, @"<C-v>jjJ"   , v_J_result0, 8, 0), // join 2 lines
@@ -185,6 +210,12 @@
             XVimMakeTestCase(text4, 1, 0, @"<C-v>jjgJ"   , v_gJ_result0, 7, 0), // join 2 lines
             // XVimMakeTestCase(text4, 1, 0, @"<C-v>jjgJj." , v_gJ_result1,17, 0), // Repeat (not supported yet)
             XVimMakeTestCase(text4, 1, 0, @"<C-v>jjgJ`." , v_gJ_result0,11, 0), // . Mark
+
+            // ge, gE in visual
+            XVimMakeTestCase(text2, 18, 0, @"vge", text2, 17, 2),
+            XVimMakeTestCase(text2, 18, 0, @"vgE", text2, 14, 5),
+            XVimMakeTestCase(text2, 18, 0, @"v2ge", text2, 16, 3),
+            XVimMakeTestCase(text2, 18, 0, @"v2gE", text2, 10, 9),
             
             nil];
 }

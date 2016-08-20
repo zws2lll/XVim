@@ -39,6 +39,9 @@
          @"relativenumber", @"rn",
          @"alwaysuseinputsource", @"auis",
          @"blinkcursor", @"bc",
+         @"startofline", @"sol",
+         @"expandtab", @"et",
+         @"highlight", @"hi",
          nil];
         
         // Default values
@@ -58,6 +61,12 @@
         _relativenumber = NO;
         _alwaysuseinputsource = NO;
         _blinkcursor = NO;
+        _startofline = YES;
+        _expandtab = YES;
+        self.highlight = @{@"Search": @{
+                                   @"guibg": [NSColor yellowColor],
+                                   }
+                           };
     }
     return self;
 }
@@ -77,6 +86,12 @@
 }
 
 - (void)setOption:(NSString*)name value:(id)value{
+    BOOL toggle = NO;
+    NSRange range = [name rangeOfString:@"!"];
+    if( range.location == name.length - 1 && name.length > 1 ){
+        toggle = YES;
+        name = [name substringToIndex:name.length - 1];
+    }
     NSString* propName = name;
     if( [_option_maps objectForKey:name] ){
         // If the name is abbriviation use full name
@@ -84,6 +99,14 @@
     }
     
     if( [self respondsToSelector:NSSelectorFromString(propName)] ){
+        if( toggle ){
+            id oldValue = [self valueForKey:propName];
+            // Check if the old value was a BOOL
+            if( strcmp([oldValue objCType], @encode(BOOL)) == 0 ){
+                [self setValue:@(![oldValue boolValue]) forKey:propName];
+                return;
+            }
+        }
         [self setValue:value forKey:propName];
     }
 }

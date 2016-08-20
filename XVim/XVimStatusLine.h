@@ -8,9 +8,9 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface XVimStatusLine : NSView
-- (void)layoutStatus:(NSView*)container;
+@interface XVimLaststatusTransformer : NSValueTransformer
+@end
 
-+ (XVimStatusLine*)associateOf:(id)object;
-- (void)associateWith:(id)object;
+@interface XVimStatusLine : NSTextField
+- (id)initWithString:(NSString*)str;
 @end

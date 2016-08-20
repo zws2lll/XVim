@@ -24,6 +24,7 @@
 #import "XVimMarks.h"
 #import "XVimCommandLineEvaluator.h"
 #import "XVimOptions.h"
+#import "XVimUtil.h"
 
 
 ////////////////////////////////
@@ -337,7 +338,13 @@
     [eval execute];
     XVimMotion* motion = eval.evalutionResult;
     if( !forward ){
-        ++motion.count;
+        // NB when searching backward (`QUESTION`) while in the middle of the
+        // searched word, the first match is the word at the cursor. Therefore,
+        // search backwards an extra time if not at the beginning of a word.
+        NSUInteger index = self.sourceView.insertionPoint;
+        if( isKeyword([self.sourceView.xvim_string characterAtIndex:(index - 1)]) ){
+            ++motion.count;
+        }
     }
     [self _motionFixed:motion];
     return nil;
@@ -367,10 +374,12 @@
 	BOOL jumpToAnotherFile = NO;
     if( ![mark.document isEqualToString:self.sourceView.documentURL.path]){
 		jumpToAnotherFile = YES;
-        IDEDocumentController* ctrl = [IDEDocumentController sharedDocumentController];
         NSError* error;
         NSURL* doc = [NSURL fileURLWithPath:mark.document];
-        [ctrl openDocumentWithContentsOfURL:doc display:YES error:&error];
+        DVTDocumentLocation* loc = [[DVTDocumentLocation alloc] initWithDocumentURL:doc timestamp:nil];
+        IDEEditorOpenSpecifier* spec = [IDEEditorOpenSpecifier structureEditorOpenSpecifierForDocumentLocation:loc inWorkspace:[XVimLastActiveWorkspaceTabController() workspace] error:&error];
+        
+        [XVimLastActiveEditorArea() _openEditorOpenSpecifier:spec editorContext:[XVimLastActiveEditorArea() lastActiveEditorContext] takeFocus:YES];
     }
     
     NSUInteger to = [self.sourceView.textStorage xvim_indexOfLineNumber:mark.line column:mark.column];

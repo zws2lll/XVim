@@ -23,6 +23,7 @@
 #import "DVTSourceTextView+XVim.h"
 #import "XVimMark.h"
 #import "XVimMarks.h"
+#import "IDEWorkspaceTabController+XVim.h"
 
 @interface XVimWindow () {
     NSMutableArray     *_defaultEvaluatorStack;
@@ -41,7 +42,6 @@
 @end
 
 @implementation XVimWindow
-@synthesize commandLine = _commandLine;
 @synthesize tmpBuffer = _tmpBuffer;
 
 - (instancetype)initWithIDEEditorArea:(IDEEditorArea *)editorArea
@@ -53,8 +53,8 @@
         _defaultEvaluatorStack = [[NSMutableArray alloc] init];
         _currentEvaluatorStack = _defaultEvaluatorStack;
         _inputContext = [[NSTextInputContext alloc] initWithClient:self];
+        _commandLine = [_editorArea xvim_commandline];
         [self _resetEvaluatorStack:_defaultEvaluatorStack activateNormalHandler:YES];
-        _commandLine = [[XVimCommandLine alloc] init];
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_documentChangedNotification:)
                                                      name:XVimDocumentChangedNotification object:nil];
@@ -72,7 +72,7 @@
         return obj;
     }
 
-    if (_editorArea.editorMode == 2 && [editor isKindOfClass:[IDEComparisonEditor class]]) {
+    if (_editorArea.editorMode == VERSION && [editor isKindOfClass:[IDEComparisonEditor class]]) {
         obj = [[(IDEComparisonEditor *)editor keyEditor] mainScrollView].documentView;
         return obj;
     }
@@ -425,7 +425,11 @@
 }
 
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange{
-    return [self.inputView setMarkedText:aString selectedRange:selectedRange replacementRange:replacementRange];
+    if(self.currentEvaluator.mode == XVIM_MODE_INSERT || self.currentEvaluator.mode == XVIM_MODE_CMDLINE) {
+        return [self.inputView setMarkedText:aString selectedRange:selectedRange replacementRange:replacementRange];
+    }else{
+        // Prohibit marked text # Issue 746 (Must be use with alwaysuseinputsource)
+    }
 }
 
 - (void)unmarkText{
